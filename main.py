@@ -17,7 +17,7 @@ def check_connection(check_ip):
          print("БД недоступна.")
 
 def check_ping(hostname):
-    response = os.system("ping -c 1 " + hostname + " > /dev/null")
+    response = os.system("ping -c 1 " + hostname + "  >null")
     return response == 0
 
 def Replication_process(Primary_ip, Standby_ip):
@@ -34,7 +34,7 @@ def Replication_process(Primary_ip, Standby_ip):
             check_connection(Standby_ip)
             flag_master_drop = True
             if (flag_promote == False):
-                os.system(f"ssh -i C:/Users/andre/.ssh/id_rsa postgres@{Standby_ip} '/usr/lib/postgresql/13/bin/pg_ctlcluster 13 main promote -D /var/lib/postgresql/13/main > /dev/null'")
+                os.system(f"ssh -i C:/Users/andre/.ssh/id_rsa replicator@{Standby_ip} '/usr/lib/postgresql/13/bin/pg_ctl promote -D /var/lib/postgresql/13/main'")
                 flag_promote = True
                 print("[StandBy переведен в основной режим].")
 
@@ -42,8 +42,8 @@ def Replication_process(Primary_ip, Standby_ip):
             print((f"[{id}] Связь с Master восстановлена."))
             check_connection(Primary_ip)
             try:
-                os.system(f"ssh -i C:/Users/andre/.ssh/id_rsa postgres@{Primary_ip} 'rm -rf /var/lib/postgresql/13/main; mkdir /var/lib/postgresql/13/main; chmod go-rwx /var/lib/postgresql/13/main | pg_basebackup -P -R -X stream -c fast -h {Standby_ip} -U postgres -D /var/lib/postgresql/13/main | sudo systemctl restart postgresql'")
-                os.system(f"ssh -i C:/Users/andre/.ssh/id_rsa postgres@{Primary_ip} 'sudo systemctl restart postgresql'")
+                os.system(f"ssh -i C:/Users/andre/.ssh/id_rsa admin@{Primary_ip} 'rm -rf /var/lib/postgresql/13/main; mkdir /var/lib/postgresql/13/main; chmod go-rwx /var/lib/postgresql/13/main | pg_basebackup -P -R -X stream -c fast -h {Standby_ip} -U postgres -D /var/lib/postgresql/13/main | sudo systemctl restart postgresql'")
+                os.system(f"ssh -i C:/Users/andre/.ssh/id_rsa admin@{Primary_ip} 'sudo systemctl restart postgresql'")
                 flag_master_drop = False
                 flag_promote = False
                 print("Репликация успешно выполнена.") 
@@ -55,10 +55,9 @@ def Replication_process(Primary_ip, Standby_ip):
 def main():
 
     Primary_ip = '158.160.122.56'
-    Standby_ip = '158.160.100.179'
+    Standby_ip = '51.250.14.54'
     
     Replication_process(Primary_ip, Standby_ip)
     
-
 
 main()
